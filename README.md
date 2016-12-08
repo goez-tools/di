@@ -1,6 +1,16 @@
 # Goez Dependency Injection Container
 
-A simple dependency injection container which was inspired by Laravel Container.
+A simple dependency injection container which was inspired by Laravel Service Container.
+
+## Features
+
+* Nested dependency injection.
+* Interface binding.
+
+## TODO
+
+* Singleton
+* Method injection
 
 ## Installation
 
@@ -19,6 +29,8 @@ $container = Container::createInstance();
 
 ### `make($name[, $arguments])`
 
+Make an instance:
+
 ```php
 class App
 {
@@ -28,10 +40,18 @@ class App
     {
         $this->appName = $appName;
     }
+    
+    public function getAppName()
+    {
+        return $this->appName;
+    }
 }
 
 $app = $container->make(App::class);
+echo $app->getAppName(); // ThisApp
+
 $app = $container->make(App::class, ['MyApp']);
+echo $app->getAppName(); // MyApp
 ```
 
 Inject object by type-hint:
@@ -53,6 +73,8 @@ class Auth {}
 
 $app = $container->make(App::class);
 ```
+
+Nested dependency injection:
 
 ```php
 class App
