@@ -7,7 +7,7 @@ use ReflectionParameter;
 
 class Container
 {
-    private static $instance;
+    private static $singleton;
 
     /**
      * @var array
@@ -23,10 +23,10 @@ class Container
      */
     public static function createInstance()
     {
-        if (static::$instance === null) {
-            static::$instance = new static();
+        if (static::$singleton === null) {
+            static::$singleton = new static();
         }
-        return static::$instance;
+        return static::$singleton;
     }
 
     /**
@@ -34,17 +34,30 @@ class Container
      */
     public static function resetInstance()
     {
-        static::$instance = null;
+        static::$singleton = null;
         static::$map = [];
     }
 
     /**
      * @param $name
-     * @param \Closure $closure
+     * @param \Closure|string $closure
      */
     public function bind($name, $closure)
     {
-        static::$map[$name] = $closure;
+        if (is_string($closure) || ($closure instanceof \Closure)) {
+            static::$map[$name] = $closure;
+        }
+    }
+
+    /**
+     * @param $name
+     * @param $instance
+     */
+    public function instance($name, $instance)
+    {
+        if (is_object($instance) && ($instance instanceof $name)) {
+            static::$map[$name] = $instance;
+        }
     }
 
     /**
@@ -87,6 +100,8 @@ class Container
                     $closure = static::$map[$name];
                     if ($closure instanceof \Closure) {
                         return $closure($this);
+                    } elseif ($closure instanceof $name) {
+                        return $closure;
                     } else {
                         $name = $closure;
                     }

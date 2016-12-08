@@ -179,4 +179,15 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expectedName, $object->getName());
         $this->assertEquals('World', $object->getMessage());
     }
+
+    /**
+     * @test
+     */
+    public function it_should_bind_an_instance_of_interface()
+    {
+        $auth = new HttpAuth();
+        $this->container->instance(Auth::class, $auth);
+        $object = $this->container->make(Auth::class);
+        $this->assertInstanceOf(HttpAuth::class, $object);
+    }
 }
