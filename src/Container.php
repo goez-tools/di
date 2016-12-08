@@ -55,29 +55,81 @@ class Container
      */
     public function make($name, array $givenArgs = [])
     {
-        if (isset(static::$map[$name])) {
-            $closure = static::$map[$name];
-            if ($closure instanceof \Closure) {
-                return $closure($this);
-            } else {
-                $name = $closure;
-            }
-        }
+        $resolver = $this->getResolver([
+            $this->resolveFromMap(),
+            $this->resolveClassName(),
+            $this->resolveNestedInjection(),
+        ]);
+        return $resolver($name, $givenArgs);
+    }
 
-        if (!class_exists($name)) {
-            return null;
-        }
+    /**
+     * @param array $resolvers
+     * @return mixed|null
+     */
+    private function getResolver(array $resolvers)
+    {
+        $defaultResolver = array_pop($resolvers);
+        $resolver = array_reduce(array_reverse($resolvers), function ($next, $resolver) {
+            return $resolver($next);
+        }, $defaultResolver());
+        return $resolver;
+    }
 
-        $reflectionClass = new ReflectionClass($name);
-        $reflectionConstructor = $reflectionClass->getConstructor();
-        if (null === $reflectionConstructor) {
-            return $reflectionClass->newInstance();
-        }
-        $reflectionParams = $reflectionConstructor->getParameters();
-        $args = $this->mergeParams($givenArgs, $reflectionParams);
-        return !empty($args) ?
-            $reflectionClass->newInstanceArgs($args) :
-            new $name();
+    /**
+     * @return \Closure
+     */
+    private function resolveFromMap()
+    {
+        return function (\Closure $next) {
+            return function ($name, &$givenArgs) use ($next) {
+                if (isset(static::$map[$name])) {
+                    $closure = static::$map[$name];
+                    if ($closure instanceof \Closure) {
+                        return $closure($this);
+                    } else {
+                        $name = $closure;
+                    }
+                }
+                return $next($name, $givenArgs);
+            };
+        };
+    }
+
+    /**
+     * @return \Closure
+     */
+    private function resolveClassName()
+    {
+        return function (\Closure $next) {
+            return function ($name, &$givenArgs) use ($next) {
+                if (!class_exists($name)) {
+                    return null;
+                }
+                return $next($name, $givenArgs);
+            };
+        };
+    }
+
+    /**
+     * @return \Closure
+     */
+    private function resolveNestedInjection()
+    {
+        return function () {
+            return function ($name, &$givenArgs) {
+                $reflectionClass = new ReflectionClass($name);
+                $reflectionConstructor = $reflectionClass->getConstructor();
+                if (null === $reflectionConstructor) {
+                    return $reflectionClass->newInstance();
+                }
+                $reflectionParams = $reflectionConstructor->getParameters();
+                $args = $this->mergeParams($givenArgs, $reflectionParams);
+                return !empty($args) ?
+                    $reflectionClass->newInstanceArgs($args) :
+                    new $name();
+            };
+        };
     }
 
     /**
@@ -85,7 +137,7 @@ class Container
      * @param $reflectionParams
      * @return array
      */
-    private function mergeParams($givenArgs, $reflectionParams)
+    private function mergeParams(&$givenArgs, $reflectionParams)
     {
         return array_map($this->makeFromParameter($givenArgs), $reflectionParams);
     }
@@ -94,7 +146,7 @@ class Container
      * @param $givenArgs
      * @return \Closure
      */
-    private function makeFromParameter($givenArgs)
+    private function makeFromParameter(&$givenArgs)
     {
         return function (ReflectionParameter $param) use (&$givenArgs) {
             $class = $param->getClass();
