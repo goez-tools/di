@@ -1,6 +1,6 @@
 # Goez Dependency Injection Container
 
-A simple dependency injection container which was inspected by Laravel Container.
+A simple dependency injection container which was inspired by Laravel Container.
 
 ## Installation
 
