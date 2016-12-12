@@ -1,5 +1,7 @@
 # Goez Dependency Injection Container
 
+[![Build Status](https://travis-ci.org/goez-tools/di.svg?branch=master)](https://travis-ci.org/goez-tools/di)
+
 A simple dependency injection container which was inspired by Laravel Service Container.
 
 ## Features
