@@ -190,4 +190,48 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $object = $this->container->make(Auth::class);
         $this->assertInstanceOf(HttpAuth::class, $object);
     }
+
+    /**
+     * @test
+     */
+    public function it_should_replace_an_instance()
+    {
+        $this->container->instance(Auth::class, new HttpAuth());
+        $object1 = $this->container->make(Auth::class);
+
+        $this->container->instance(Auth::class, new HttpAuth());
+        $object2 = $this->container->make(Auth::class);
+
+        $this->assertInstanceOf(HttpAuth::class, $object1);
+        $this->assertInstanceOf(HttpAuth::class, $object2);
+        $this->assertNotSame($object1, $object2);
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_get_a_singleton_instance_from_closure()
+    {
+        $this->container->singleton(Auth::class, function () {
+            return new HttpAuth();
+        });
+        $object1 = $this->container->make(Auth::class);
+        $object2 = $this->container->make(Auth::class);
+        $this->assertInstanceOf(HttpAuth::class, $object1);
+        $this->assertInstanceOf(HttpAuth::class, $object2);
+        $this->assertSame($object1, $object2);
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_get_a_singleton_instance_from_instance()
+    {
+        $this->container->singleton(Auth::class, new HttpAuth());
+        $object1 = $this->container->make(Auth::class);
+        $object2 = $this->container->make(Auth::class);
+        $this->assertInstanceOf(HttpAuth::class, $object1);
+        $this->assertInstanceOf(HttpAuth::class, $object2);
+        $this->assertSame($object1, $object2);
+    }
 }

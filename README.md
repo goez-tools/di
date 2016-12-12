@@ -9,7 +9,6 @@ A simple dependency injection container which was inspired by Laravel Service Co
 
 ## TODO
 
-* Singleton
 * Method injection
 
 ## Installation
@@ -122,6 +121,58 @@ class Db implements DbInterface {}
 
 $container->bind(DbInterface::class, Db::class);
 $db = $container->make(DbInterface::class);
+```
+
+### `instance($name, $instance)`
+
+Bind an existed instance.
+
+```php
+interface DbInterface {}
+
+class Db implements DbInterface {}
+
+$container->instance(DbInterface::class, new Db());
+$db1 = $container->make(DbInterface::class);
+
+$container->instance(DbInterface::class, new Db());
+$db2 = $container->make(DbInterface::class);
+
+assert($db1 !== $db2); // true
+```
+
+### `singleton($name, $instance|$closure)`
+
+Create singleton instance by closure.
+
+```php
+interface DbInterface {}
+
+class Db implements DbInterface {}
+
+$container->singleton(DbInterface::class, function (Container $c) {
+    return $c->make(Db::class);
+    // Or
+    return new Db();
+});
+$db1 = $container->make(DbInterface::class);
+$db2 = $container->make(DbInterface::class);
+
+assert($db1 === $db2);
+```
+
+Create singleton instance by an existed instance.
+
+```php
+interface DbInterface {}
+
+class Db implements DbInterface {}
+
+$container->singleton(DbInterface::class, new Db());
+$db1 = $container->make(DbInterface::class);
+$db2 = $container->make(DbInterface::class);
+
+assert($db1 === $db2);
 ```
 
 ## License

@@ -7,12 +7,17 @@ use ReflectionParameter;
 
 class Container
 {
-    private static $singleton;
+    private static $containerInstance;
 
     /**
      * @var array
      */
     protected static $map = [];
+
+    /**
+     * @var array
+     */
+    protected static $singletonInstances = [];
 
     private function __construct()
     {
@@ -23,10 +28,10 @@ class Container
      */
     public static function createInstance()
     {
-        if (static::$singleton === null) {
-            static::$singleton = new static();
+        if (static::$containerInstance === null) {
+            static::$containerInstance = new static();
         }
-        return static::$singleton;
+        return static::$containerInstance;
     }
 
     /**
@@ -34,7 +39,7 @@ class Container
      */
     public static function resetInstance()
     {
-        static::$singleton = null;
+        static::$containerInstance = null;
         static::$map = [];
     }
 
@@ -44,7 +49,7 @@ class Container
      */
     public function bind($name, $closure)
     {
-        if (is_string($closure) || ($closure instanceof \Closure)) {
+        if ($this->isClosure($closure)) {
             static::$map[$name] = $closure;
         }
     }
@@ -55,8 +60,27 @@ class Container
      */
     public function instance($name, $instance)
     {
-        if (is_object($instance) && ($instance instanceof $name)) {
+        if ($this->isInstance($name, $instance)) {
             static::$map[$name] = $instance;
+        }
+    }
+
+    /**
+     * @param $name
+     * @param $instanceOrClosure
+     */
+    public function singleton($name, $instanceOrClosure)
+    {
+        if (!isset(static::$singletonInstances[$name])) {
+            $newName = $name . 'Singleton';
+            if ($this->isClosure($instanceOrClosure)) {
+                static::$map[$newName] = $instanceOrClosure;
+            }
+            if ($this->isInstance($name, $instanceOrClosure)) {
+                static::$map[$newName] = $instanceOrClosure;
+            }
+            static::$singletonInstances[$name] = $this->make($newName);
+            unset(static::$map[$newName]);
         }
     }
 
@@ -69,6 +93,7 @@ class Container
     public function make($name, array $givenArgs = [])
     {
         $resolver = $this->getResolver([
+            $this->resolveFromSingleton(),
             $this->resolveFromMap(),
             $this->resolveClassName(),
             $this->resolveNestedInjection(),
@@ -87,6 +112,21 @@ class Container
             return $resolver($next);
         }, $defaultResolver());
         return $resolver;
+    }
+
+    /**
+     * @return \Closure
+     */
+    private function resolveFromSingleton()
+    {
+        return function (\Closure $next) {
+            return function ($name, &$givenArgs) use ($next) {
+                if (isset(static::$singletonInstances[$name])) {
+                    return static::$singletonInstances[$name];
+                }
+                return $next($name, $givenArgs);
+            };
+        };
     }
 
     /**
@@ -190,5 +230,24 @@ class Container
         return $param->isDefaultValueAvailable() ?
             $param->getDefaultValue() :
             null;
+    }
+
+    /**
+     * @param $instanceOrClosure
+     * @return bool
+     */
+    private function isClosure($instanceOrClosure)
+    {
+        return is_string($instanceOrClosure) || ($instanceOrClosure instanceof \Closure);
+    }
+
+    /**
+     * @param $name
+     * @param $instanceOrClosure
+     * @return bool
+     */
+    private function isInstance($name, $instanceOrClosure)
+    {
+        return is_object($instanceOrClosure) && ($instanceOrClosure instanceof $name);
     }
 }
