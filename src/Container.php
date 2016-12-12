@@ -41,6 +41,7 @@ class Container
     {
         static::$containerInstance = null;
         static::$map = [];
+        static::$singletonInstances = [];
     }
 
     /**
@@ -49,7 +50,7 @@ class Container
      */
     public function bind($name, $closure)
     {
-        if ($this->isClosure($closure)) {
+        if ($this->isClassName($closure) || $this->isClosure($closure)) {
             static::$map[$name] = $closure;
         }
     }
@@ -73,10 +74,7 @@ class Container
     {
         if (!isset(static::$singletonInstances[$name])) {
             $newName = $name . 'Singleton';
-            if ($this->isClosure($instanceOrClosure)) {
-                static::$map[$newName] = $instanceOrClosure;
-            }
-            if ($this->isInstance($name, $instanceOrClosure)) {
+            if ($this->isClosure($instanceOrClosure) || $this->isInstance($name, $instanceOrClosure)) {
                 static::$map[$newName] = $instanceOrClosure;
             }
             static::$singletonInstances[$name] = $this->make($newName);
@@ -138,11 +136,14 @@ class Container
             return function ($name, &$givenArgs) use ($next) {
                 if (isset(static::$map[$name])) {
                     $closure = static::$map[$name];
-                    if ($closure instanceof \Closure) {
+                    if ($this->isClosure($closure)) {
                         return $closure($this);
-                    } elseif ($closure instanceof $name) {
+                    } elseif ($this->isInstance($name, $closure)) {
                         return $closure;
-                    } else {
+                    } elseif ($this->isSingleton($name)) {
+                        return $closure;
+                    }
+                    else {
                         $name = $closure;
                     }
                 }
@@ -158,7 +159,7 @@ class Container
     {
         return function (\Closure $next) {
             return function ($name, &$givenArgs) use ($next) {
-                if (!class_exists($name)) {
+                if (!$this->isClassName($name)) {
                     return null;
                 }
                 return $next($name, $givenArgs);
@@ -236,9 +237,28 @@ class Container
      * @param $instanceOrClosure
      * @return bool
      */
+    private function isClassName($instanceOrClosure)
+    {
+        return is_string($instanceOrClosure) &&
+            class_exists($instanceOrClosure);
+    }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    private function isSingleton($name)
+    {
+        return is_string($name) && preg_match('#Singleton$#', $name);
+    }
+
+    /**
+     * @param $instanceOrClosure
+     * @return bool
+     */
     private function isClosure($instanceOrClosure)
     {
-        return is_string($instanceOrClosure) || ($instanceOrClosure instanceof \Closure);
+        return ($instanceOrClosure instanceof \Closure);
     }
 
     /**
