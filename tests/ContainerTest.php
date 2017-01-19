@@ -144,6 +144,33 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
+    public function it_should_skip_given_object()
+    {
+        $db = new Db();
+        /** @var DbAuth $object */
+        $object = $this->container->make(DbAuth::class, [$db]);
+        $this->assertInstanceOf(DbAuth::class, $object);
+        $this->assertSame($db, $object->getDb());
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_skip_given_objects_and_scalar_argument()
+    {
+        $db = new Db();
+        $dbAuth = new DbAuth($db);
+        $session = new Session('test');
+        /** @var App $object */
+        $object = $this->container->make(App::class, [$dbAuth, $session, 'MyApp']);
+        $this->assertInstanceOf(App::class, $object);
+        $this->assertSame($dbAuth, $object->getAuth());
+        $this->assertSame($session, $object->getSession());
+    }
+
+    /**
+     * @test
+     */
     public function it_should_auto_bind_and_make_object_from_arguments_nested_with_scalar_value()
     {
         $expectedAppName = 'MyApp';

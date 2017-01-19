@@ -207,9 +207,22 @@ class Container
         return function (ReflectionParameter $param) use (&$givenArgs) {
             $class = $param->getClass();
             return $class instanceof ReflectionClass ?
-                $this->make($class->getName()) :
+                $this->getParamValueOrMakeObject($class, $givenArgs) :
                 $this->getParamValue($param, array_shift($givenArgs));
         };
+    }
+
+    /**
+     * @param ReflectionClass $class
+     * @param array $givenArgs
+     * @return array
+     */
+    private function getParamValueOrMakeObject(ReflectionClass $class, &$givenArgs)
+    {
+        $name = $class->getName();
+        return isset($givenArgs[0]) && $givenArgs[0] instanceof $name ?
+            array_shift($givenArgs) :
+            $this->make($name);
     }
 
     /**
