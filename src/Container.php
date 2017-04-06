@@ -232,7 +232,7 @@ class Container
      */
     private function getParamValue($param, $givenArg)
     {
-        return $givenArg ?: $this->getParamDefaultValue($param);
+        return (null !== $givenArg) ? $givenArg : $this->getParamDefaultValue($param);
     }
 
     /**

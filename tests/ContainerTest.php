@@ -7,6 +7,7 @@ use Stub\Command;
 use Stub\Db;
 use Stub\DbAuth;
 use Stub\HttpAuth;
+use Stub\Issue;
 use Stub\Session;
 
 class ContainerTest extends \PHPUnit_Framework_TestCase
@@ -260,5 +261,15 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(HttpAuth::class, $object1);
         $this->assertInstanceOf(HttpAuth::class, $object2);
         $this->assertSame($object1, $object2);
+    }
+
+    /**
+     * @test
+     */
+    public function it_could_pass_zero_as_parameter()
+    {
+        $object1 = $this->container->make(Issue::class, [0]);
+        $this->assertInstanceOf(Issue::class, $object1);
+        $this->assertSame(0, $object1->getId());
     }
 }
