@@ -20,7 +20,7 @@ class ContainerTest extends TestCase
 
     protected function setUp()
     {
-        $this->container = Container::createInstance();
+        $this->container = Container::getInstance();
     }
 
     protected function tearDown()
