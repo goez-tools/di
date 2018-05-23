@@ -138,14 +138,17 @@ class Container
                     $closure = static::$map[$name];
                     if ($this->isClosure($closure)) {
                         return $closure($this);
-                    } elseif ($this->isInstance($name, $closure)) {
-                        return $closure;
-                    } elseif ($this->isSingleton($name)) {
+                    }
+
+                    if ($this->isInstance($name, $closure)) {
                         return $closure;
                     }
-                    else {
-                        $name = $closure;
+
+                    if ($this->isSingleton($name)) {
+                        return $closure;
                     }
+
+                    $name = $closure;
                 }
                 return $next($name, $givenArgs);
             };
