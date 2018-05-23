@@ -1,6 +1,7 @@
 <?php
 
 use Goez\Di\Container;
+use PHPUnit\Framework\TestCase;
 use Stub\App;
 use Stub\Auth;
 use Stub\Command;
@@ -10,7 +11,7 @@ use Stub\HttpAuth;
 use Stub\Issue;
 use Stub\Session;
 
-class ContainerTest extends \PHPUnit_Framework_TestCase
+class ContainerTest extends TestCase
 {
     /**
      * @var Container
