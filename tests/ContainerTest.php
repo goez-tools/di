@@ -41,8 +41,8 @@ class ContainerTest extends TestCase
      */
     public function it_should_be_a_singlton()
     {
-        $container1 = Container::createInstance();
-        $container2 = Container::createInstance();
+        $container1 = Container::getInstance();
+        $container2 = Container::getInstance();
         $this->assertSame($container1, $container2);
     }
 
@@ -51,9 +51,9 @@ class ContainerTest extends TestCase
      */
     public function it_should_reset_instance()
     {
-        $container1 = Container::createInstance();
+        $container1 = Container::getInstance();
         Container::resetInstance();
-        $container2 = Container::createInstance();
+        $container2 = Container::getInstance();
         $this->assertNotSame($container1, $container2);
     }
 

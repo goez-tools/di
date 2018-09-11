@@ -28,14 +28,6 @@ class Container
      */
     public static function getInstance()
     {
-        return static::createInstance();
-    }
-
-    /**
-     * @return Container
-     */
-    public static function createInstance()
-    {
         if (static::$containerInstance === null) {
             static::$containerInstance = new static();
         }
