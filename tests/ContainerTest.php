@@ -223,6 +223,18 @@ class ContainerTest extends TestCase
     /**
      * @test
      */
+    public function it_should_bind_an_instance_of_custom_name()
+    {
+        $auth = new HttpAuth();
+        $injectionName = 'auth_instance';
+        $this->container->instance($injectionName, $auth);
+        $object = $this->container->make($injectionName);
+        $this->assertInstanceOf(HttpAuth::class, $object);
+    }
+
+    /**
+     * @test
+     */
     public function it_should_replace_an_instance()
     {
         $this->container->instance(Auth::class, new HttpAuth());

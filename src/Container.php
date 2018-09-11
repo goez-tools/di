@@ -61,7 +61,7 @@ class Container
      */
     public function instance($name, $instance)
     {
-        if ($this->isInstance($name, $instance)) {
+        if (is_object($instance)) {
             static::$map[$name] = $instance;
         }
     }
@@ -145,6 +145,10 @@ class Container
                     }
 
                     if ($this->isSingleton($name)) {
+                        return $closure;
+                    }
+
+                    if (is_object($closure)) {
                         return $closure;
                     }
 
