@@ -285,4 +285,32 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(Issue::class, $object1);
         $this->assertSame(0, $object1->getId());
     }
+
+    /**
+     * @test
+     */
+    public function it_should_return_false_when_object_is_not_registered()
+    {
+        $this->assertFalse($this->container->has('example'));
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_return_true_when_instance_is_registered()
+    {
+        $this->container->instance('example', new stdClass());
+        $this->assertTrue($this->container->has('example'));
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_return_true_when_binding_is_set()
+    {
+        $this->container->bind('example', function () {
+            return new stdClass();
+        });
+        $this->assertTrue($this->container->has('example'));
+    }
 }

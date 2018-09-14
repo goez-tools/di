@@ -46,6 +46,15 @@ class Container
 
     /**
      * @param $name
+     * @return bool
+     */
+    public function has($name)
+    {
+        return isset(static::$map[$name]);
+    }
+
+    /**
+     * @param $name
      * @param \Closure|string $closure
      */
     public function bind($name, $closure)
