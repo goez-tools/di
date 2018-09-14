@@ -50,7 +50,7 @@ class Container
      */
     public function has($name)
     {
-        return isset(static::$map[$name]);
+        return isset(static::$map[$name]) || isset(static::$singletonInstances[$name]);
     }
 
     /**

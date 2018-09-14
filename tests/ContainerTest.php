@@ -313,4 +313,15 @@ class ContainerTest extends TestCase
         });
         $this->assertTrue($this->container->has('example'));
     }
+
+    /**
+     * @test
+     */
+    public function it_should_return_true_when_singleton_is_set()
+    {
+        $this->container->singleton('example', function () {
+            return new stdClass();
+        });
+        $this->assertTrue($this->container->has('example'));
+    }
 }
