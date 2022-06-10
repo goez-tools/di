@@ -8,7 +8,7 @@
          beStrictAboutTestsThatDoNotTestAnything="true"
          beStrictAboutTodoAnnotatedTests="true"
          colors="true"
-         printerClass="Sempro\PHPUnitPrettyPrinter\PrettyPrinter"
+         printerClass="Sempro\PHPUnitPrettyPrinter\PrettyPrinterForPhpUnit9"
          verbose="true">
     <testsuites>
         <testsuite name="Unit">
