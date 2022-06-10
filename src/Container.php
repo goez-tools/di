@@ -7,8 +7,6 @@ use ReflectionParameter;
 
 class Container
 {
-    private static $containerInstance;
-
     /**
      * @var array
      */
@@ -18,6 +16,11 @@ class Container
      * @var array
      */
     protected static $singletonInstances = [];
+
+    /**
+     * @var self
+     */
+    private static $containerInstance;
 
     private function __construct()
     {
@@ -65,6 +68,25 @@ class Container
     }
 
     /**
+     * @param $instanceOrClosure
+     * @return bool
+     */
+    private function isClassName($instanceOrClosure)
+    {
+        return is_string($instanceOrClosure) &&
+            class_exists($instanceOrClosure);
+    }
+
+    /**
+     * @param $instanceOrClosure
+     * @return bool
+     */
+    private function isClosure($instanceOrClosure)
+    {
+        return ($instanceOrClosure instanceof \Closure);
+    }
+
+    /**
      * @param $name
      * @param $instance
      */
@@ -89,6 +111,16 @@ class Container
             static::$singletonInstances[$name] = $this->make($newName);
             unset(static::$map[$newName]);
         }
+    }
+
+    /**
+     * @param $name
+     * @param $instanceOrClosure
+     * @return bool
+     */
+    private function isInstance($name, $instanceOrClosure)
+    {
+        return is_object($instanceOrClosure) && ($instanceOrClosure instanceof $name);
     }
 
     /**
@@ -169,6 +201,15 @@ class Container
     }
 
     /**
+     * @param $name
+     * @return bool
+     */
+    private function isSingleton($name)
+    {
+        return is_string($name) && preg_match('#Singleton$#', $name);
+    }
+
+    /**
      * @return \Closure
      */
     private function resolveClassName()
@@ -215,10 +256,12 @@ class Container
     }
 
     /**
-     * @param $givenArgs
+     * @param array $givenArgs
      * @return \Closure
+     *
+     * @see https://php.watch/versions/8.0/deprecated-reflectionparameter-methods
      */
-    private function makeFromParameter(&$givenArgs)
+    private function makeFromParameter(array &$givenArgs)
     {
         return function (ReflectionParameter $param) use (&$givenArgs) {
             $class = $param->getType() && !$param->getType()->isBuiltin()
@@ -263,43 +306,5 @@ class Container
         return $param->isDefaultValueAvailable() ?
             $param->getDefaultValue() :
             null;
-    }
-
-    /**
-     * @param $instanceOrClosure
-     * @return bool
-     */
-    private function isClassName($instanceOrClosure)
-    {
-        return is_string($instanceOrClosure) &&
-            class_exists($instanceOrClosure);
-    }
-
-    /**
-     * @param $name
-     * @return bool
-     */
-    private function isSingleton($name)
-    {
-        return is_string($name) && preg_match('#Singleton$#', $name);
-    }
-
-    /**
-     * @param $instanceOrClosure
-     * @return bool
-     */
-    private function isClosure($instanceOrClosure)
-    {
-        return ($instanceOrClosure instanceof \Closure);
-    }
-
-    /**
-     * @param $name
-     * @param $instanceOrClosure
-     * @return bool
-     */
-    private function isInstance($name, $instanceOrClosure)
-    {
-        return is_object($instanceOrClosure) && ($instanceOrClosure instanceof $name);
     }
 }
