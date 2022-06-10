@@ -221,7 +221,10 @@ class Container
     private function makeFromParameter(&$givenArgs)
     {
         return function (ReflectionParameter $param) use (&$givenArgs) {
-            $class = $param->getClass();
+            $class = $param->getType() && !$param->getType()->isBuiltin()
+                ? new ReflectionClass($param->getType()->getName())
+                : null;
+
             return $class instanceof ReflectionClass ?
                 $this->getParamValueOrMakeObject($class, $givenArgs) :
                 $this->getParamValue($param, array_shift($givenArgs));
